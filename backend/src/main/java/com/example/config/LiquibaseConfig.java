@@ -1,0 +1,40 @@
+package com.example.config;
+import javax.sql.DataSource;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import liquibase.integration.spring.SpringLiquibase;
+
+@Configuration
+public class LiquibaseConfig {
+	
+	@Autowired
+	private DataSource dataSource;
+
+	@Value("${spring.liquibase.contexts:}")
+	private String contexts;
+		
+	@Bean
+	public SpringLiquibase springLiquibase() {
+		SpringLiquibase liquibase = new SpringLiquibase();
+		
+		liquibase.setDataSource(dataSource);
+		liquibase.setChangeLog("db/changelog/master.changelog.xml");
+		liquibase.setDatabaseChangeLogTable("database_change_log");
+		liquibase.setDatabaseChangeLogLockTable("database_change_log_lock");
+
+		// Set contexts if specified (for demo-seed context)
+		if (contexts != null && !contexts.isEmpty()) {
+			liquibase.setContexts(contexts);
+		}
+
+		// Ensure Liquibase runs on startup before other beans
+		liquibase.setShouldRun(true);
+		
+		return liquibase;
+	}
+
+}

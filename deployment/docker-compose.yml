@@ -1,0 +1,21 @@
+networks:
+  webnet-sample-app:
+    driver: bridge
+
+services:
+  sample-app-frontend:
+    image: "ghcr.io/navalgandhi1989/automated-preview-environments/sample-app-frontend:${UI_BUILD_NUMBER:-latest}"
+    restart: unless-stopped
+    ports:
+      - "8081:80"
+    networks:
+      - webnet-sample-app
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro # Mount NGINX configuration file
+  sample-app-backend:
+    image: "ghcr.io/navalgandhi1989/automated-preview-environments/sample-app-backend:${BACKEND_BUILD_NUMBER:-latest}"
+    restart: unless-stopped
+    env_file:
+      - .env.local
+    networks:
+      - webnet-sample-app

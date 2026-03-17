@@ -1,0 +1,40 @@
+networks:
+  webnet:
+    driver: bridge
+
+services:
+    # Frontend UI 
+    sample-app-frontend:
+        image: "ghcr.io/navalgandhi1989/automated-preview-environments/sample-app-frontend:${UI_BUILD_NUMBER:-latest}"
+        restart: unless-stopped
+        ports:
+          - "${UI_PORT}:80"
+        networks:
+          - webnet
+        volumes:
+          - ${STACK_DIR}/nginx.conf:/etc/nginx/nginx.conf:ro # Mount NGINX configuration file
+
+    # Backend API 
+    sample-app-backend:
+      image: "ghcr.io/navalgandhi1989/automated-preview-environments/sample-app-backend:${BACKEND_BUILD_NUMBER:-latest}"
+      restart: unless-stopped
+      env_file:
+        - ${STACK_DIR}/.env.local
+      networks:
+        - webnet
+
+
+
+    # MariaDB for environment
+    sample-app-mariadb:
+      image: mariadb:12.2.2-noble
+      restart: unless-stopped
+      environment:
+        MARIADB_ROOT_PASSWORD: root
+        MARIADB_DATABASE: sample_app
+      ports:
+        - "${MARIADB_PORT:-0}:3306"
+      volumes:
+        - ${STACK_DIR}/mariadb:/var/lib/mysql
+      networks:
+        - webnet
